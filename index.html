@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Cat Kombat · Nine Lives</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff9f4d">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-screen">
+      <h1>😺 CAT KOMBAT</h1>
+      <div class="sub">nine lives · infinite prestige</div>
+      
+      <!-- Toggle between Login and Signup -->
+      <div class="auth-toggle">
+        <button class="auth-toggle-btn active" id="showLoginBtn">LOGIN</button>
+        <button class="auth-toggle-btn" id="showSignupBtn">SIGN UP</button>
+      </div>
+      
+      <!-- LOGIN FORM -->
+      <div id="loginForm" class="auth-form">
+        <input type="email" id="loginEmail" class="login-input" placeholder="email" autocomplete="off">
+        <input type="password" id="loginPassword" class="login-input" placeholder="password" autocomplete="off">
+        <button class="login-btn" id="loginBtn">▶ LOGIN</button>
+        <div id="loginError" class="error-message"></div>
+      </div>
+      
+      <!-- SIGNUP FORM -->
+      <div id="signupForm" class="auth-form hidden">
+        <input type="text" id="signupUsername" class="login-input" placeholder="username" autocomplete="off">
+        <input type="email" id="signupEmail" class="login-input" placeholder="email" autocomplete="off">
+        <input type="password" id="signupPassword" class="login-input" placeholder="password" autocomplete="off">
+        <input type="password" id="signupConfirmPassword" class="login-input" placeholder="confirm password" autocomplete="off">
+        <button class="login-btn" id="signupBtn">▶ CREATE ACCOUNT</button>
+        <div id="signupError" class="error-message"></div>
+      </div>
+      
+      <div class="demo-note">demo: any email/password works locally</div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="mainApp" class="main-app hidden">
+      <!-- top bar -->
+      <div class="top-bar">
+        <div class="user-greeting" id="displayUsername">Loading...</div>
+        <div class="coin-balance">
+          <span class="coin-icon">🐟</span>
+          <span class="balance-amount" id="coinDisplay">0</span>
+        </div>
+        <div class="prestige-badge" id="prestigeBadge">😺 0</div>
+      </div>
+
+      <!-- FLOATING NUMBERS CONTAINER -->
+      <div id="floatingNumbers"></div>
+
+      <!-- content area -->
+      <div class="content-area" id="contentArea">
+        <!-- MAIN CAT PANEL -->
+        <div id="panelCat" class="tab-panel active-panel">
+          <div class="cat-container">
+            <div class="cat-avatar" id="tapCat">
+              <img src="cat.png" id="catEmoji" style="width: 220px; height: 220px; object-fit: contain;">
+              <div class="cat-glasses" id="catGlasses"></div>
+              <div class="cat-hat" id="catHat"></div>
+              <div class="cat-cape" id="catCape"></div>
+            </div>
+            
+            <div class="tap-energy">
+              <span>⚡ energy</span>
+              <span id="energyValue">500/500</span>
+            </div>
+            <div class="energy-bar-bg">
+              <div class="energy-fill" id="energyFill" style="width: 100%"></div>
+            </div>
+            
+            <!-- LUCKY CATCH MINI-GAME -->
+            <div class="lucky-catch hidden" id="luckyCatch">
+              <div class="lucky-title">🐟 LUCKY CATCH 🐟</div>
+              <div class="lucky-timer" id="luckyTimer">10s</div>
+              <div class="lucky-multiplier" id="luckyMultiplier">10x</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PONDS PANEL -->
+        <div id="panelPonds" class="tab-panel">
+          <div class="tap-header">🎣 AUTO-FISHING PONDS</div>
+          
+          <div class="mine-card locked" id="mine1Card">
+            <div class="mine-info">
+              <h3>🐟 FISH POND</h3>
+              <p>lvl <span id="mineLvl1">1</span> · <span id="mineProfit1">5</span>/cast</p>
+            </div>
+            <div class="mine-price" id="unlockPrice1">🔒 1K</div>
+            <button class="mine-btn" id="mine1" disabled>🔒</button>
+          </div>
+          
+          <div class="mine-card locked" id="mine2Card">
+            <div class="mine-info">
+              <h3>🐠 GOLDFISH LAKE</h3>
+              <p>lvl <span id="mineLvl2">1</span> · <span id="mineProfit2">8</span>/cast</p>
+            </div>
+            <div class="mine-price" id="unlockPrice2">🔒 5K</div>
+            <button class="mine-btn" id="mine2" disabled>🔒</button>
+          </div>
+          
+          <div class="mine-card locked" id="mine3Card">
+            <div class="mine-info">
+              <h3>🐋 WHALE SPOT</h3>
+              <p>lvl <span id="mineLvl3">1</span> · <span id="mineProfit3">12</span>/cast</p>
+            </div>
+            <div class="mine-price" id="unlockPrice3">🔒 10K</div>
+            <button class="mine-btn" id="mine3" disabled>🔒</button>
+          </div>
+        </div>
+
+        <!-- SHOP PANEL -->
+        <div id="panelShop" class="tab-panel">
+          <div class="tap-header">😺 CAT CUSTOMIZATION</div>
+          
+          <div class="shop-item" id="buyGlasses">
+            <div class="shop-info">
+              <span class="shop-emoji">👓</span>
+              <span>Cool Glasses</span>
+              <span class="shop-effect">+5% mining</span>
+            </div>
+            <button class="shop-btn" id="glassesBtn" data-item="glasses">5K 🐟</button>
+          </div>
+          
+          <div class="shop-item" id="buyHat">
+            <div class="shop-info">
+              <span class="shop-emoji">🧢</span>
+              <span>Fisherman Hat</span>
+              <span class="shop-effect">+10% lucky</span>
+            </div>
+            <button class="shop-btn" id="hatBtn" data-item="hat">10K 🐟</button>
+          </div>
+          
+          <div class="shop-item" id="buyCape">
+            <div class="shop-info">
+              <span class="shop-emoji">👑</span>
+              <span>Royal Cape</span>
+              <span class="shop-effect">+20% all</span>
+            </div>
+            <button class="shop-btn" id="capeBtn" data-item="cape">25K 🐟</button>
+          </div>
+        </div>
+
+        <!-- PRESTIGE PANEL -->
+        <div id="panelPrestige" class="tab-panel">
+          <div class="prestige-card">
+            <h2>🐱 NINE LIVES</h2>
+            <div class="prestige-info">
+              <p>Lives: <span id="prestigeLives">0</span>/9</p>
+              <p>Multiplier: <span id="prestigeMultiplier">1x</span></p>
+              <p>Next: <span id="nextPrestige">100K</span></p>
+            </div>
+            <div class="prestige-progress">
+              <div class="progress-bar" id="prestigeProgress" style="width: 0%"></div>
+            </div>
+            <button class="prestige-btn" id="prestigeBtn">🌟 PRESTIGE</button>
+          </div>
+        </div>
+
+        <!-- LEADERBOARD PANEL -->
+        <div id="panelLeaderboard" class="tab-panel">
+          <div class="tap-header">🏆 TOP MASTERS</div>
+          <div class="leaderboard-list" id="leaderboardList">
+            <div class="leaderboard-item">Loading...</div>
+          </div>
+          <div class="your-rank" id="yourRank"></div>
+        </div>
+      </div>
+
+      <!-- bottom navigation -->
+      <div class="bottom-nav">
+        <div class="nav-item active" data-tab="cat"><span>😺</span><span>Cat</span></div>
+        <div class="nav-item" data-tab="ponds"><span>🎣</span><span>Ponds</span></div>
+        <div class="nav-item" data-tab="shop"><span>🛒</span><span>Shop</span></div>
+        <div class="nav-item" data-tab="prestige"><span>🌟</span><span>Lives</span></div>
+        <div class="nav-item" data-tab="leaderboard"><span>🏆</span><span>Top</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
